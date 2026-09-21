@@ -26,7 +26,7 @@ output/
 *.h5
 
 # Dataset (large files — download separately)
-data/
+# data/
 
 # Jupyter checkpoints
 .ipynb_checkpoints/
