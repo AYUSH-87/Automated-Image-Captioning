@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lens / Caption — Neural Image Captioning Pipeline</title>
+  <meta name="description" content="Minimalist, context-aware image captioning powered by InceptionV3 and an LSTM decoder.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/frontend/css/style.css">
+</head>
+<body>
+
+  <!-- App Wrapper -->
+  <div class="app-layout">
+    
+    <!-- Top Navigation Bar -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <div class="brand-symbol">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="3"/>
+              <line x1="12" y1="3" x2="12" y2="6"/>
+              <line x1="12" y1="18" x2="12" y2="21"/>
+              <line x1="3" y1="12" x2="6" y2="12"/>
+              <line x1="18" y1="12" x2="21" y2="12"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-name">LENS // CAPTION</span>
+            <span class="brand-desc">InceptionV3 + LSTM Neural Pipeline</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="status-indicator" id="statusIndicator">
+            <span class="status-dot"></span>
+            <span class="status-label" id="statusLabel">Model Ready</span>
+          </div>
+
+          <button id="architectureBtn" class="btn-ghost" title="Architecture and Technical Specifications">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="21" x2="9" y2="9"/>
+            </svg>
+            <span>Specs</span>
+          </button>
+
+          <button id="themeToggle" class="btn-ghost icon-only" title="Toggle Theme" aria-label="Toggle Theme">
+            <!-- Sun icon (for dark mode) -->
+            <svg class="theme-icon sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <!-- Moon icon (for light mode) -->
+            <svg class="theme-icon moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="main-content">
+      <div class="workspace-grid">
+
+        <!-- Left Column: Input, Upload & Samples -->
+        <section class="panel-section input-panel">
+          <div class="section-header">
+            <span class="section-tag">01 // INPUT</span>
+            <h2 class="section-title">Image Source</h2>
+          </div>
+
+          <!-- Dropzone Container -->
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Drop image here or click to browse">
+            <input type="file" id="fileInput" accept="image/png, image/jpeg, image/jpg, image/webp" hidden>
+            
+            <div class="dropzone-empty" id="dropzoneEmpty">
+              <div class="dropzone-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              </div>
+              <p class="dropzone-primary-text">Drag & drop image here, or <span>browse</span></p>
+              <p class="dropzone-secondary-text">PNG, JPG, JPEG, or WEBP up to 10MB</p>
+              <div class="paste-hint">
+                <kbd>Ctrl</kbd> + <kbd>V</kbd> to paste from clipboard
+              </div>
+            </div>
+
+            <!-- Preview Card (shown when image is loaded) -->
+            <div class="dropzone-preview" id="dropzonePreview" style="display: none;">
+              <div class="preview-media-wrapper">
+                <img id="imagePreview" src="" alt="Selected image preview">
+              </div>
+              <div class="preview-meta">
+                <div class="meta-row">
+                  <span class="meta-filename" id="metaFilename">image.jpg</span>
+                  <button type="button" class="btn-text btn-remove-image" id="removeImageBtn" title="Remove image">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/>
+                      <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    <span>Change</span>
+                  </button>
+                </div>
+                <div class="meta-tags">
+                  <span class="badge" id="metaDimensions">— × —</span>
+                  <span class="badge" id="metaSize">— KB</span>
+                  <span class="badge" id="metaSource">Local File</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Button -->
+          <div class="action-bar">
+            <button id="generateBtn" class="btn-primary" disabled>
+              <span class="btn-content">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                <span>Generate Caption</span>
+              </span>
+              <span class="spinner" style="display: none;"></span>
+            </button>
+          </div>
+
+          <!-- Curated Samples Section -->
+          <div class="samples-wrapper">
+            <div class="section-subheader">
+              <span class="subheader-title">Quick Test Samples</span>
+              <span class="subheader-tip">Click to test instantly</span>
+            </div>
+            <div class="sample-grid" id="sampleGrid">
+              <!-- Dynamically populated sample cards -->
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Column: Results, Tokens & Pipeline Stats -->
+        <section class="panel-section output-panel">
+          <div class="section-header">
+            <span class="section-tag">02 // OUTPUT</span>
+            <div class="header-split">
+              <h2 class="section-title">Prediction Result</h2>
+              <div class="latency-pill" id="latencyPill" style="display: none;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span id="latencyText">0 ms</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Caption Result Card -->
+          <div class="result-card" id="resultCard">
+            <!-- Empty state -->
+            <div class="result-placeholder" id="resultPlaceholder">
+              <div class="placeholder-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+              </div>
+              <p class="placeholder-title">Awaiting Inference</p>
+              <p class="placeholder-desc">Upload an image or pick a sample photo to run CNN-LSTM feature decoding.</p>
+            </div>
+
+            <!-- Loading state -->
+            <div class="result-loading" id="resultLoading" style="display: none;">
+              <div class="loader-pulse"></div>
+              <p class="loading-label">Extracting InceptionV3 features & decoding sequence...</p>
+              <span class="loading-sub">Step-by-step greedy token decoding in progress</span>
+            </div>
+
+            <!-- Active Caption Display -->
+            <div class="result-active" id="resultActive" style="display: none;">
+              <div class="quote-container">
+                <div class="quote-mark">“</div>
+                <p class="caption-text" id="captionText"></p>
+              </div>
+
+              <!-- Action Bar for Caption -->
+              <div class="caption-actions">
+                <button id="copyCaptionBtn" class="btn-subtle" title="Copy caption text">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                  </svg>
+                  <span id="copyBtnLabel">Copy</span>
+                </button>
+
+                <button id="speakCaptionBtn" class="btn-subtle" title="Read caption aloud">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                  </svg>
+                  <span>Listen</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Token Breakdown Section -->
+          <div class="tokens-section" id="tokensSection" style="display: none;">
+            <div class="section-subheader">
+              <span class="subheader-title">Token Confidence Breakdown</span>
+              <span class="subheader-tip">Model probability per generated step</span>
+            </div>
+            <div class="tokens-list" id="tokensList">
+              <!-- Token chips injected via JS -->
+            </div>
+          </div>
+
+          <!-- Architecture & Diagnostics Stats -->
+          <div class="stats-section">
+            <div class="section-subheader">
+              <span class="subheader-title">Pipeline Specifications</span>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-label">Vision Backbone</span>
+                <span class="stat-value">InceptionV3</span>
+                <span class="stat-sub">2048-dim feature vector</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Text Decoder</span>
+                <span class="stat-value">LSTM</span>
+                <span class="stat-sub">256 units + 256-d embed</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Sequence Limit</span>
+                <span class="stat-value" id="statMaxLen">37 Tokens</span>
+                <span class="stat-sub">Post-padded sequence</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-label">Vocabulary</span>
+                <span class="stat-value" id="statVocab">8,000+</span>
+                <span class="stat-sub">Flickr8k corpus tokens</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Session History Drawer / Panel -->
+      <section class="panel-section history-section">
+        <div class="history-header">
+          <div class="history-title-group">
+            <span class="section-tag">03 // SESSION LOG</span>
+            <h3 class="section-title">Recent Captions (<span id="historyCount">0</span>)</h3>
+          </div>
+          <button id="clearHistoryBtn" class="btn-text" style="display: none;">Clear History</button>
+        </div>
+        <div class="history-list" id="historyList">
+          <div class="history-empty">
+            No captions generated in this session yet.
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <span>Automated Image Captioning — InceptionV3 + LSTM Pipeline</span>
+        <span class="footer-separator">•</span>
+        <span>Minimalist Inference Interface</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Technical Specs Modal -->
+  <div class="modal-backdrop" id="specsModal" style="display: none;">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">System Architecture & Pipeline</h3>
+        <button class="modal-close" id="closeSpecsModal" aria-label="Close modal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="spec-block">
+          <h4>Merge Architecture</h4>
+          <p>The system separates visual perception from sequence generation, merging them into a unified multimodal decoder layer:</p>
+          <pre class="ascii-diagram">
+Image ──► InceptionV3 (299×299) ──► Dense(256) ──► Dropout ──┐
+                                                             ├──► Add ──► Dense(256) ──► Softmax(Vocab)
+Text  ──► Embedding(256) ───────► Dropout ──► LSTM(256) ─────┘
+          </pre>
+        </div>
+
+        <div class="spec-block">
+          <h4>Decoding Strategy</h4>
+          <p>Uses <strong>Greedy Decoding</strong> with <code>startseq</code> initiation and <code>endseq</code> termination. Each step samples the highest probability token from the vocabulary distribution.</p>
+        </div>
+
+        <div class="spec-block">
+          <h4>Hardware & Performance</h4>
+          <ul>
+            <li>In-memory model weights pre-loaded to minimize cold-start latency.</li>
+            <li>Zero disk writes during inference: inputs are read directly from memory streams.</li>
+            <li>Global Average Pooling eliminates spatial parameter bloat, keeping memory footprint low.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/frontend/js/app.js"></script>
+</body>
+</html>

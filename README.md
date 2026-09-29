@@ -128,7 +128,7 @@ python main.py predict --image ./data/flickr8k/Images/1000268201_693b08cb0e.jpg
 ```
 
 Output:
-```
+```bash
 ============================================================
 GENERATED CAPTION
 ============================================================
@@ -137,6 +137,24 @@ GENERATED CAPTION
 
 ============================================================
 ```
+
+### Launch the Minimalist Web Frontend
+
+To launch the web interface:
+
+```bash
+python app.py
+```
+
+Then navigate to **http://localhost:8080** in your browser.
+
+**Frontend Features:**
+- **Minimalist Aesthetic:** Clean, monochrome design system (dark/light themes, zero funky colors).
+- **Interactive Drag & Drop:** Dropzone, file picker, and direct clipboard image paste (`Ctrl+V`).
+- **Quick Test Gallery:** 1-click test samples pre-loaded from Flickr8k.
+- **Inference Diagnostics:** Real-time latency tracking (~1.4s), step-by-step token confidence breakdown chips.
+- **Text-to-Speech & Copy:** Audio speech playback and one-click clipboard copying.
+- **Session History:** Review and switch between past generated captions within the session.
 
 ## Configuration
 

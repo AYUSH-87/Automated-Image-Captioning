@@ -107,7 +107,7 @@ def data_generator(captions_dict, features, tokenizer, max_len, vocab_size, batc
                     # Yield a batch when we have enough samples
                     if len(X_image) >= batch_size:
                         yield (
-                            [np.array(X_image[:batch_size]), np.array(X_seq[:batch_size])],
+                            (np.array(X_image[:batch_size]), np.array(X_seq[:batch_size])),
                             np.array(y[:batch_size]),
                         )
                         # Keep any overflow for the next batch
@@ -118,7 +118,7 @@ def data_generator(captions_dict, features, tokenizer, max_len, vocab_size, batc
         # Yield remaining samples (partial last batch)
         if X_image:
             yield (
-                [np.array(X_image), np.array(X_seq)],
+                (np.array(X_image), np.array(X_seq)),
                 np.array(y),
             )
 
